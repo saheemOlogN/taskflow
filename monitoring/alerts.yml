@@ -1,0 +1,17 @@
+groups:
+  - name: taskflow
+    rules:
+      - alert: TaskFlowUnavailable
+        expr: up{job="taskflow"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: TaskFlow metrics endpoint has been unavailable for 30 seconds
+      - alert: TaskFlowServerErrors
+        expr: sum(increase(taskflow_http_requests_total{status=~"5.."}[2m])) > 0
+        for: 15s
+        labels:
+          severity: warning
+        annotations:
+          summary: TaskFlow returned server errors in the last two minutes
