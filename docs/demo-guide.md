@@ -9,8 +9,8 @@ Explain how a small application change moves from requirement to tested, repeata
 1. **Problem and architecture (1 minute):** students need a task tracker. Explain the API, DynamoDB and the delivery diagram in the README.
 2. **Plan and traceability (1 minute):** open a real Jira ticket, then its linked GitHub branch and pull request.
 3. **Continuous integration (1 minute):** show a GitHub Actions run. Explain input validation tests and the separate deployed CRUD check. Moto tests emulate AWS; the integration check uses DynamoDB Local.
-4. **Continuous deployment (2 minutes):** show Jenkins checking out main, testing, rebuilding containers and verifying CRUD. Use a prepared successful run if build time exceeds your slot.
-5. **Working application (1 minute):** create a task, list it, mark it complete, and show it still exists after `docker compose restart api`. Use the correct Compose project (`-p taskflow-demo` for Jenkins).
+4. **Continuous deployment (2 minutes):** show Jenkins checking out main, testing, building a ZIP and deploying it to Windows and verifying CRUD. Use a prepared successful run if build time exceeds your slot.
+5. **Working application (1 minute):** create a task, list it, mark it complete, and show it still exists after `scripts/native.py stop-api` followed by `scripts/native.py start`. Run commands with the project virtual-environment Python from the deployment workspace.
 6. **Failure and recovery (1 minute):** show a saved genuine failing test run followed by its fix. Explain that failed tests prevent deployment. Do not break the live demo just before presenting.
 7. **Limitations and learning (1 minute):** explain local versus AWS DynamoDB, secret handling, persistent data, and why production would need authentication and a stronger rollout/rollback strategy.
 
@@ -22,7 +22,7 @@ For the required monitoring stage, add two minutes to show Prometheus target hea
 - [ ] README includes architecture and reproducible commands.
 - [ ] Jira ticket has acceptance criteria and actual development links.
 - [ ] GitHub repository has meaningful commits and a reviewed PR if a reviewer is available.
-- [ ] GitHub Actions run is green, including container integration testing.
+- [ ] GitHub Actions run is green, including native integration testing.
 - [ ] Jenkins stages and JUnit test results are visible.
 - [ ] Running API creates, lists, updates and deletes a task.
 - [ ] A task survives an API restart.

@@ -4,13 +4,15 @@ from uuid import uuid4
 
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
+from botocore.config import Config
 from flask import Flask, Response, g, jsonify, request
-from prometheus_client import CollectorRegistry, Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram, generate_latest, CONTENT_TYPE_LATEST
 
 
 def create_app(table=None):
     app = Flask(__name__)
     registry = CollectorRegistry()
+    database_up = Gauge('taskflow_database_up', 'Whether DynamoDB is reachable', registry=registry)
     requests = Counter('taskflow_http_requests_total', 'HTTP responses', ['method', 'route', 'status'], registry=registry)
     latency = Histogram('taskflow_http_request_duration_seconds', 'HTTP response time', ['route'], registry=registry)
 
@@ -28,10 +30,16 @@ def create_app(table=None):
 
     @app.get('/metrics')
     def metrics():
+        try:
+            table.load()
+            database_up.set(1)
+        except (BotoCoreError, ClientError):
+            database_up.set(0)
         return Response(generate_latest(registry), content_type=CONTENT_TYPE_LATEST)
 
     if table is None:
         db = boto3.resource('dynamodb', region_name=os.getenv('AWS_DEFAULT_REGION', 'ap-south-1'),
+                            config=Config(connect_timeout=2, read_timeout=2, retries={'max_attempts': 0}),
                             endpoint_url=os.getenv('DYNAMODB_ENDPOINT_URL') or None)
         table = db.Table(os.getenv('TABLE_NAME', 'devops-tasks'))
 

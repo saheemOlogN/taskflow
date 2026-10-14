@@ -1,23 +1,30 @@
 pipeline {
-    agent { label 'docker' }
-    options { disableConcurrentBuilds(); timestamps() }
+    agent { label 'windows' }
+    options { disableConcurrentBuilds() }
     triggers { pollSCM('H/5 * * * *') }
     stages {
         stage('Checkout') { steps { checkout scm } }
-        stage('Test') {
+        stage('Install') {
             steps {
-                sh 'python3 -m venv .venv'
-                sh '.venv/bin/pip install -r requirements-dev.txt'
-                sh '.venv/bin/python -m pytest -q --junitxml=reports/tests.xml'
+                bat 'if not exist .venv\\Scripts\\python.exe python -m venv .venv'
+                bat '.venv\\Scripts\\python.exe -m pip install -r requirements-dev.txt'
             }
         }
-        stage('Deploy local demo') {
-            steps { sh 'docker compose -p taskflow-demo up -d --build --wait --wait-timeout 120' }
+        stage('Test') { steps { bat '.venv\\Scripts\\python.exe -m pytest -q --junitxml=reports/tests.xml' } }
+        stage('Build') {
+            steps {
+                bat '.venv\\Scripts\\python.exe scripts/native.py build'
+                archiveArtifacts artifacts: 'dist/taskflow.zip', fingerprint: true
+            }
         }
-        stage('Smoke test') { steps { sh '.venv/bin/python scripts/smoke.py' } }
+        stage('Prepare native tools') { steps { bat '.venv\\Scripts\\python.exe scripts/native.py setup' } }
+        stage('Deploy and monitor') {
+            steps {
+                withEnv(['JENKINS_NODE_COOKIE=taskflow-demo-service']) {
+                    bat '.venv\\Scripts\\python.exe scripts/native.py deploy'
+                }
+            }
+        }
     }
-    post {
-        always { junit allowEmptyResults: true, testResults: 'reports/tests.xml' }
-        failure { sh 'docker compose -p taskflow-demo logs --tail=80 || true' }
-    }
+    post { always { junit allowEmptyResults: true, testResults: 'reports/tests.xml' } }
 }

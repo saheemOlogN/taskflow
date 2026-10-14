@@ -5,3 +5,6 @@ __pycache__/
 reports/
 *.log
 .tmp/
+.tools/
+.runtime/
+dist/

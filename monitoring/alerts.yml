@@ -1,6 +1,13 @@
 groups:
   - name: taskflow
     rules:
+      - alert: TaskFlowDatabaseUnavailable
+        expr: taskflow_database_up == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: TaskFlow cannot reach DynamoDB
       - alert: TaskFlowUnavailable
         expr: up{job="taskflow"} == 0
         for: 30s

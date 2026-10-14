@@ -66,3 +66,4 @@ def test_database_outage_reports_unhealthy():
     client = create_app(OfflineTable()).test_client()
     assert client.get('/health').status_code == 503
     assert 'status="503"' in client.get('/metrics').text
+    assert 'taskflow_database_up 0.0' in client.get('/metrics').text

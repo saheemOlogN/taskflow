@@ -4,23 +4,32 @@ permissions:
   contents: read
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
           cache: pip
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
       - run: pip install -r requirements-dev.txt
       - run: python -m pytest -q --junitxml=reports/tests.xml
+      - run: python scripts/native.py build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: taskflow-release
+          path: dist/taskflow.zip
+      - run: python scripts/native.py setup
+      - run: python scripts/native.py deploy
+      - run: python scripts/native.py stop
+        if: always()
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-results
-          path: reports/tests.xml
-      - run: docker compose -p taskflow-ci up -d --build --wait --wait-timeout 120
-      - run: python scripts/smoke.py
-      - run: docker compose -p taskflow-ci logs
-        if: failure()
-      - run: docker compose -p taskflow-ci down -v
-        if: always()
+          name: test-results-and-logs
+          path: |
+            reports/tests.xml
+            .runtime/*.log

@@ -6,7 +6,7 @@ Create these as tasks; numbers below are examples, not existing Jira tickets.
 | --- | --- | --- |
 | DEVOPS-1 | Create DynamoDB task API | Create/list/complete/delete a task; show stored data |
 | DEVOPS-2 | Validate task input | Empty and oversized titles rejected with HTTP 400; automated tests pass |
-| DEVOPS-3 | Containerize API and database | Compose starts both; task survives restart |
+| DEVOPS-3 | Package and deploy the API on Windows | ZIP artifact deploys with Waitress and DynamoDB Local; task survives restart |
 | DEVOPS-4 | Add GitHub CI | PR shows tests and deployed integration check passing |
 | DEVOPS-5 | Deploy using Jenkins | Pipeline stages and JUnit report visible; smoke test passes |
 | DEVOPS-6 | Demonstrate failure and recovery | Failing test blocks deployment; corrected change succeeds |
